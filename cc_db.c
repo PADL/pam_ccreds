@@ -80,6 +80,21 @@ int pam_cc_db_open(const char *filename, unsigned int flags,
 		return PAM_SERVICE_ERR;
 	}
 
+#elif DB_VERSION_MAJOR == 2
+	int rc;
+
+	if (flags & CC_DB_FLAGS_WRITE) {
+		db_flags |= DB_CREATE;
+	}
+	if (flags & CC_DB_FLAGS_READ) {
+		db_flags |= DB_RDONLY;
+	}
+
+	rc = db_open(filename, DB_BTREE, db_flags, mode, NULL, NULL, &db);
+	if (rc != 0) {
+		errno = rc;
+		return PAM_SERVICE_ERR;
+	}
 #else
 	if (flags & CC_DB_FLAGS_WRITE) {
 		db_flags |= O_CREAT;
@@ -242,7 +257,7 @@ int pam_cc_db_close(void **db_p)
 		db = *db_p;
 
 		if (db != NULL) {
-#if DB_VERSION_MAJOR > 2
+#if DB_VERSION_MAJOR >= 2
 			db->close(db, 0);
 #else
 			db->close(db);
@@ -299,19 +314,20 @@ int pam_cc_db_seq(void *_db, void **cookie,
 	DBT key;
 	DBT val;
 	int rc;
+#if DB_VERSION_MAJOR >= 2
+	DBC *cursor = (DBC *)*cookie;
+	int first = 0;
+#endif
 
 	memset(&key, 0, sizeof(key));
 	memset(&val, 0, sizeof(val));
 
-#if DB_VERSION_MAJOR <= 2
+#if DB_VERSION_MAJOR < 2
 	rc = db->seq(db, &key, &val, (*cookie == NULL ? R_FIRST : R_NEXT));
 	if (*cookie == NULL) {
 		*cookie = (void *)1;
 	}
 #else
-	DBC *cursor = (DBC *)*cookie;
-	int first = 0;
-
 	if (cursor == NULL) {
 # if DB_VERSION_MAJOR > 2 || (DB_VERSION_MAJOR == 2 && DB_VERSION_MINOR > 5)
 		rc = db->cursor(db, NULL, &cursor, 0);
