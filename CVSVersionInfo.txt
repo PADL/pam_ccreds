@@ -1,0 +1,6 @@
+# Created and modified by checkpoint; do not edit
+# $Id$
+# $Name$
+ProjectName: pam_ccreds
+ProjectVersion: 1
+ProjectMaintainer: lukeh
