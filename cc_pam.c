@@ -170,12 +170,59 @@ static int _pam_sm_store_cached_credentials(pam_handle_t *pamh,
 					    int flags, unsigned int sm_flags,
 					    const char *ccredsfile)
 {
+	int rc;
+	const char *authtok;
+	pam_cc_handle_t *pamcch;
+
+	rc = pam_cc_start_ex(pamh, ((sm_flags & SM_FLAGS_SERVICE_SPECIFIC) != 0),
+			     ccredsfile, &pamcch);
+	if (rc != PAM_SUCCESS) {
+		return rc;
+	}
+
+	authtok = NULL;
+
+	rc = pam_get_item(pamh, PAM_AUTHTOK, (const void **)&authtok);
+	if (rc != PAM_SUCCESS) {
+		pam_cc_end(&pamcch);
+		return rc;
+	}
+
+	rc = pam_cc_store_credentials(pamcch, PAM_CC_TYPE_SSHA1,
+				      authtok, strlen(authtok));
+
+	pam_cc_end(&pamcch);
+
+	return rc;
 }
 
 static int _pam_sm_delete_cached_credentials(pam_handle_t *pamh,
 					     int flags, unsigned int sm_flags,
 					     const char *ccredsfile)
 {
+	int rc;
+	const char *authtok;
+	pam_cc_handle_t *pamcch;
+
+	rc = pam_cc_start_ex(pamh, ((sm_flags & SM_FLAGS_SERVICE_SPECIFIC) != 0),
+			     ccredsfile, &pamcch);
+	if (rc != PAM_SUCCESS) {
+		return rc;
+	}
+
+	authtok = NULL;
+
+	rc = pam_get_item(pamh, PAM_AUTHTOK, (const void **)&authtok);
+	if (rc != PAM_SUCCESS) {
+		pam_cc_end(&pamcch);
+		return rc;
+	}
+
+	rc = pam_cc_destroy_credentials(pamcch, PAM_CC_TYPE_SSHA1);
+
+	pam_cc_end(&pamcch);
+
+	return rc;
 }
 
 PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh,
