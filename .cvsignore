@@ -1,0 +1,10 @@
+stamp-h1
+config.status
+config.log
+config.h
+cc_test
+cc_dump
+autom4te.cache
+Makefile
+.deps
+pam_ccreds.so
