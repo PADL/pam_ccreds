@@ -83,14 +83,20 @@ am__quote = @am__quote@
 install_sh = @install_sh@
 pam_ccreds_so_LD = @pam_ccreds_so_LD@
 pam_ccreds_so_LDFLAGS = @pam_ccreds_so_LDFLAGS@
-noinst_PROGRAMS = pam_ccreds.so
+noinst_PROGRAMS = pam_ccreds.so cc_test cc_dump
 EXTRA_DIST = COPYING.LIB CVSVersionInfo.txt ChangeLog README \
 	     ldap.conf pam.conf pam_ccreds.spec
 
 
-AM_CFLAGS = -Wall -g
+AM_CFLAGS = -fno-strict-aliasing
 
 pam_ccreds_so_SOURCES = cc_db.c cc_lib.c cc_pam.c cc.h
+
+cc_test_SOURCES = cc_test.c
+cc_test_LDFLAGS = -Wl,-rpath -Wl,$(libdir)/security pam_ccreds.so -lpam -lpam_misc
+
+cc_dump_SOURCES = cc_dump.c
+cc_dump_LDFLAGS = -Wl,-rpath -Wl,$(libdir)/security pam_ccreds.so -lpam -lpam_misc
 
 DEFS = @DEFS@
 
@@ -105,9 +111,18 @@ ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = config.h
 CONFIG_CLEAN_FILES =
-noinst_PROGRAMS = pam_ccreds.so$(EXEEXT)
+noinst_PROGRAMS = pam_ccreds.so$(EXEEXT) cc_test$(EXEEXT) \
+	cc_dump$(EXEEXT)
 PROGRAMS = $(noinst_PROGRAMS)
 
+am_cc_dump_OBJECTS = cc_dump.$(OBJEXT)
+cc_dump_OBJECTS = $(am_cc_dump_OBJECTS)
+cc_dump_LDADD = $(LDADD)
+cc_dump_DEPENDENCIES =
+am_cc_test_OBJECTS = cc_test.$(OBJEXT)
+cc_test_OBJECTS = $(am_cc_test_OBJECTS)
+cc_test_LDADD = $(LDADD)
+cc_test_DEPENDENCIES =
 am_pam_ccreds_so_OBJECTS = cc_db.$(OBJEXT) cc_lib.$(OBJEXT) \
 	cc_pam.$(OBJEXT)
 pam_ccreds_so_OBJECTS = $(am_pam_ccreds_so_OBJECTS)
@@ -119,18 +134,20 @@ LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
-@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/cc_db.Po ./$(DEPDIR)/cc_lib.Po \
-@AMDEP_TRUE@	./$(DEPDIR)/cc_pam.Po
+@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/cc_db.Po ./$(DEPDIR)/cc_dump.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/cc_lib.Po ./$(DEPDIR)/cc_pam.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/cc_test.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 CFLAGS = @CFLAGS@
-DIST_SOURCES = $(pam_ccreds_so_SOURCES)
+DIST_SOURCES = $(cc_dump_SOURCES) $(cc_test_SOURCES) \
+	$(pam_ccreds_so_SOURCES)
 DIST_COMMON = README AUTHORS COPYING ChangeLog INSTALL Makefile.am \
 	Makefile.in NEWS acconfig.h aclocal.m4 config.guess config.h.in \
 	config.sub configure configure.in depcomp install-sh missing \
 	mkinstalldirs
-SOURCES = $(pam_ccreds_so_SOURCES)
+SOURCES = $(cc_dump_SOURCES) $(cc_test_SOURCES) $(pam_ccreds_so_SOURCES)
 
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -173,6 +190,12 @@ distclean-hdr:
 
 clean-noinstPROGRAMS:
 	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
+cc_dump$(EXEEXT): $(cc_dump_OBJECTS) $(cc_dump_DEPENDENCIES) 
+	@rm -f cc_dump$(EXEEXT)
+	$(LINK) $(cc_dump_LDFLAGS) $(cc_dump_OBJECTS) $(cc_dump_LDADD) $(LIBS)
+cc_test$(EXEEXT): $(cc_test_OBJECTS) $(cc_test_DEPENDENCIES) 
+	@rm -f cc_test$(EXEEXT)
+	$(LINK) $(cc_test_LDFLAGS) $(cc_test_OBJECTS) $(cc_test_LDADD) $(LIBS)
 pam_ccreds.so$(EXEEXT): $(pam_ccreds_so_OBJECTS) $(pam_ccreds_so_DEPENDENCIES) 
 	@rm -f pam_ccreds.so$(EXEEXT)
 	$(LINK) $(pam_ccreds_so_LDFLAGS) $(pam_ccreds_so_OBJECTS) $(pam_ccreds_so_LDADD) $(LIBS)
@@ -184,8 +207,10 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cc_db.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cc_dump.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cc_lib.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cc_pam.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cc_test.Po@am__quote@
 
 distclean-depend:
 	-rm -rf ./$(DEPDIR)

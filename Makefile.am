@@ -1,11 +1,17 @@
-noinst_PROGRAMS = pam_ccreds.so
+noinst_PROGRAMS = pam_ccreds.so cc_test cc_dump
 EXTRA_DIST = COPYING.LIB CVSVersionInfo.txt ChangeLog README \
 	     ldap.conf pam.conf pam_ccreds.spec
 
-AM_CFLAGS = -Wall -g
+AM_CFLAGS = -fno-strict-aliasing
 
 pam_ccreds_so_SOURCES = cc_db.c cc_lib.c cc_pam.c cc.h
 pam_ccreds_so_LDFLAGS = @pam_ccreds_so_LDFLAGS@
+
+cc_test_SOURCES = cc_test.c
+cc_test_LDFLAGS = -Wl,-rpath -Wl,$(libdir)/security pam_ccreds.so -lpam -lpam_misc
+
+cc_dump_SOURCES = cc_dump.c
+cc_dump_LDFLAGS = -Wl,-rpath -Wl,$(libdir)/security pam_ccreds.so -lpam -lpam_misc
 
 DEFS = @DEFS@
 

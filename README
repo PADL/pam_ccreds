@@ -1,3 +1,66 @@
 
-This is a module for providing cached credentials support.
+                         pam_ccreds
+                         ==========
+
+The pam_ccreds module provides a mechanism for caching
+credentials when authenticating against a network
+authentication service, so that authentication can still
+proceed when the service is down. Note at present no
+mechanism is provided for caching _authorization_ 
+information, i.e. whether you are allowed to login once
+authenticated. Doing this is more difficult than it
+first sounds.
+
+The present implementation requires Linux-PAM as it takes
+advantage of the extended configuration syntax of pam.conf.
+(See the example configuration file included with the 
+software for an example of configuring it with pam_ldap.)
+On platforms that do not use Linux-PAM you would need a
+wrapper PAM module to choose an action based on the
+previous module's return code.
+
+When invoked via PAM, pam_ccreds performs one of three
+actions:
+
+	validate	validate PAM authentication token
+			against cached credentials
+
+	store		cache PAM authentication token for
+			future validation
+
+	update		if the PAM authentication token is
+			cached, then remove it from the
+			cache
+			
+These are configured by the "action=" module option. The
+following module options are also recognized:
+
+	use_first_pass	do not prompt for the password if
+			the existing PAM authentication
+			token does not validate
+
+	try_first_pass	prompt for the password if the
+			existing PAM authentication token
+			does not validate
+
+	service_specific only check cached credentials for
+			 this specific service
+
+	ccredsfile=	name of the cached credentials
+			file; default is /var/cache/.security.db
+
+	action=		action (see above)
+
+The "cc_test" and "cc_dump" utilities are also provided;
+cc_dump may be removed in a future version.
+
+Things we need to do are:
+
+	o more testing
+	o verify it works with Berkeley DB 4.x
+	o use transactions rather than flock() when
+	  using versions of DB that support it
+
+The pam_ccreds module is distributed under the GNU General
+Public License.
 

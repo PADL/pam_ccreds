@@ -9,13 +9,10 @@ AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_INSTALL
 
-AC_ARG_WITH(db-dir, [  --with-db-dir=DIR     base directory of Berkeley DB library])
-AC_ARG_WITH(ccreds-file, [  --with-ccreds-file    path to cached credentials file], [AC_DEFINE_UNQUOTED(CCREDS_FILE, "$with_ccreds_file")])
+AC_ARG_WITH(openssl-dir, [  --with-openssl-dir=DIR  base directory of OpenSSL library])
+AC_ARG_WITH(ccreds-file, [  --with-ccreds-file      path to cached credentials file], [AC_DEFINE_UNQUOTED(CCREDS_FILE, "$with_ccreds_file")])
 
 if test "$ac_cv_prog_gcc" = "yes"; then CFLAGS="$CFLAGS -Wall -fPIC"; fi
-
-dnl This is needed for the native Solaris LDAP SDK
-CPPFLAGS="$CPPFLAGS -DLDAP_REFERRALS -DLDAP_DEPRECATED"
 
 case "$target_os" in
 freebsd*) CPPFLAGS="$CPPFLAGS -DPIC -D_REENTRANT" ;;
@@ -61,13 +58,20 @@ fi
 AC_CHECK_HEADERS(security/pam_appl.h security/pam_misc.h security/pam_modules.h)
 AC_CHECK_HEADERS(pam/pam_appl.h pam/pam_misc.h pam/pam_modules.h)
 AC_CHECK_HEADERS(openssl/opensslconf.h, , AC_MSG_ERROR(could not locate <openssl/opensslconf.h>))
-AC_CHECK_HEADERS(db.h)
-AC_CHECK_HEADERS(db1/db.h)
-AC_CHECK_HEADERS(db_185.h)
-AC_CHECK_HEADERS(db3/db_185.h)
 
-AC_CHECK_LIB(pam, main)
-AC_CHECK_LIB(crypto, main)
+AC_CHECK_HEADERS(db.h)
+dnl AC_CHECK_HEADERS(db1/db.h)
+dnl AC_CHECK_HEADERS(db_185.h)
+dnl AC_CHECK_HEADERS(db3/db_185.h)
+
+AC_CHECK_LIB(db, main,[LIBS="-ldb $LIBS" found_db_lib=yes],,$LIBS)
+if test -z "$found_db_lib"; then
+	AC_CHECK_LIB(db1, main,[LIBS="-ldb1 $LIBS" found_db_lib=yes],,$LIBS)
+fi
+
+AC_CHECK_LIB(crypto, SHA1_Init,[LIBS="-lcrypto $LIBS"],,$LIBS)
+AC_CHECK_LIB(pam, pam_start)
+AC_CHECK_LIB(pam_misc, misc_conv)
 
 AC_OUTPUT(Makefile)
 

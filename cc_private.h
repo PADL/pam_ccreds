@@ -19,6 +19,7 @@
 #include <sys/stat.h>
 
 struct pam_cc_handle {
+	unsigned int flags;
 	char *service;
 	char *user;
 	const struct pam_conv *conv;
@@ -30,26 +31,27 @@ struct pam_cc_handle {
 int pam_cc_db_open(const char *filename, unsigned int flags, int mode, void **db);
 
 /* Write to underlying datastore */  
-int pam_cc_db_put(void *db, char *key, size_t keylength, char *data, size_t length);
+int pam_cc_db_put(void *db, const char *key, size_t keylength,
+		  const char *data, size_t length);
 
 /* Read from underlying datastore */
-int pam_cc_db_get(void *db, char *key, size_t keylength, char *data, size_t *length);
+int pam_cc_db_get(void *db, const char *key, size_t keylength,
+		  char *data, size_t *length);
 
 /* Delete from underlying datastore */
-int pam_cc_db_delete(void *db, char *key, size_t keylength);
+int pam_cc_db_delete(void *db, const char *key, size_t keylength);
 
 /* Close underlying datastore */
 int pam_cc_db_close(void **db);
 
-#if DB_VERSION_MAJOR <= 2
-/* flags */
-#define DB_CREATE			(O_RDWR | O_CREAT)
-#define DB_RDONLY			(O_RDONLY)
-#define DB_AUTO_COMMIT			0
-#endif
+/* Enumerate values in datastore */
+int pam_cc_db_seq(void *_db, void **cookie,
+		  const char **key_p, size_t *keylength_p,
+		  const char **data_p, size_t *datalength_p);
 
-#define CC_DB_FLAGS_WRITE		(DB_CREATE | DB_AUTO_COMMIT)
-#define CC_DB_FLAGS_READ		DB_RDONLY
+#define CC_DB_FLAGS_WRITE		0x01
+#define CC_DB_FLAGS_READ		0x02
+
 #define CC_DB_MODE			(S_IREAD | S_IWRITE)
 
 #define PADL_CC_HANDLE_DATA		"PADL-CC-HANDLE-DATA"
