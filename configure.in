@@ -1,0 +1,73 @@
+AC_INIT(cc_lib.c)
+AC_CANONICAL_SYSTEM
+AC_PREFIX_DEFAULT()
+
+AM_INIT_AUTOMAKE(pam_ccreds, 1)
+AM_CONFIG_HEADER(config.h)
+
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_INSTALL
+
+AC_ARG_WITH(db-dir, [  --with-db-dir=DIR     base directory of Berkeley DB library])
+AC_ARG_WITH(ccreds-file, [  --with-ccreds-file    path to cached credentials file], [AC_DEFINE_UNQUOTED(CCREDS_FILE, "$with_ccreds_file")])
+
+if test "$ac_cv_prog_gcc" = "yes"; then CFLAGS="$CFLAGS -Wall -fPIC"; fi
+
+dnl This is needed for the native Solaris LDAP SDK
+CPPFLAGS="$CPPFLAGS -DLDAP_REFERRALS -DLDAP_DEPRECATED"
+
+case "$target_os" in
+freebsd*) CPPFLAGS="$CPPFLAGS -DPIC -D_REENTRANT" ;;
+aix*) CPPFLAGS="$CPPFLAGS -D_THREAD_SAFE" ;;
+*) CPPFLAGS="$CPPFLAGS -D_REENTRANT" ;;
+esac
+
+case "$target_os" in
+aix*) pam_ccreds_so_LD="ld"
+  pam_ccreds_so_LDFLAGS="-bM:SRE -bnoentry -bE:\$(srcdir)/exports.aix"
+  TARGET_OS="AIX" ;;
+darwin*) pam_ccreds_so_LDFLAGS="-bundle" ;;
+hpux*) pam_ccreds_so_LD="/bin/ld"
+  pam_ccreds_so_LDFLAGS="-b -dynamic -G `cat exports.hpux`"
+  TARGET_OS="HPUX" ;;
+solaris*) pam_ccreds_so_LD="/usr/ccs/bin/ld"
+  pam_ccreds_so_LDFLAGS="-B dynamic -M \$(srcdir)/exports.solaris -G -B group -lc" ;;
+linux*) pam_ccreds_so_LDFLAGS="-shared -Wl,-Bdynamic -Wl,--version-script,\$(srcdir)/exports.linux" ;;
+*) pam_ccreds_so_LDFLAGS="-shared" ;;
+esac
+
+AC_SUBST(pam_ccreds_so_LD)
+AC_SUBST(pam_ccreds_so_LDFLAGS)
+
+AM_CONDITIONAL(USE_NATIVE_LINKER, test -n "$pam_ccreds_so_LD")
+AM_CONDITIONAL(EXTENSION_SO, test "$target_os" = "linux" -o "$target_os" = "linux-gnu")
+AM_CONDITIONAL(EXTENSION_1, test "$TARGET_OS" = "HPUX")
+
+if test -n "$with_openssl_dir"; then
+  CPPFLAGS="$CPPFLAGS -I$with_openssl_dir/include"
+  LDFLAGS="$LDFLAGS -L$with_openssl_dir/lib"
+  case "$target_os" in  
+  aix*) LDFLAGS="$LDFLAGS -Wl,-brtl -Wl,-blibpath:$with_openssl_dir/lib"
+    pam_ccreds_so_LDFLAGS="$pam_ccreds_so_LDFLAGS -L$with_openssl_dir/lib -brtl -blibpath:$with_openssl_dir/lib" ;;
+  hpux*) LDFLAGS="$LDFLAGS -Wl,+b$with_openssl_dir/lib"
+    pam_ccreds_so_LDFLAGS="$pam_ccreds_so_LDFLAGS -L$with_openssl_dir/lib +b$with_openssl_dir/lib" ;;
+  solaris*) LDFLAGS="$LDFLAGS -R$with_openssl_dir/lib" 
+    pam_ccreds_so_LDFLAGS="$pam_ccreds_so_LDFLAGS -L$with_openssl_dir/lib -R$with_openssl_dir/lib" ;;
+  *) LDFLAGS="$LDFLAGS -Wl,-rpath,$with_openssl_dir/lib" ;;
+  esac  
+fi
+
+AC_CHECK_HEADERS(security/pam_appl.h security/pam_misc.h security/pam_modules.h)
+AC_CHECK_HEADERS(pam/pam_appl.h pam/pam_misc.h pam/pam_modules.h)
+AC_CHECK_HEADERS(openssl/opensslconf.h, , AC_MSG_ERROR(could not locate <openssl/opensslconf.h>))
+AC_CHECK_HEADERS(db.h)
+AC_CHECK_HEADERS(db1/db.h)
+AC_CHECK_HEADERS(db_185.h)
+AC_CHECK_HEADERS(db3/db_185.h)
+
+AC_CHECK_LIB(pam, main)
+AC_CHECK_LIB(crypto, main)
+
+AC_OUTPUT(Makefile)
+
