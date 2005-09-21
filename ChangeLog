@@ -1,6 +1,17 @@
 $Id$
 ===============================================================
 
+2	Luke Howard <lukeh@padl.com>
+
+	* patch from Nicolas Boullis <nicolas.boullis@ecp.fr>:
+	  print last byte of hash
+	* patch from Nicolas Boullis <nicolas.boullis@ecp.fr>:
+	  handle the case where neither use_first_pass nor try_first_pass
+	  are given
+	* patch from Guido Guenther <agx@sigxcpu.org>:
+	  fix "cc_test any user -" (currently nothing gets deleted from
+	  the cache)
+
 1	Luke Howard <lukeh@padl.com>
 
 	* initial revision

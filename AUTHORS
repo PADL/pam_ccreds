@@ -3,6 +3,12 @@ pam_ccreds was written by Luke Howard <lukeh@padl.com>.
 Contributors should appraise themselves of the document at
 http://www.padl.com/Articles/GuidelinesforContributing.html.
 
+Special thanks go to people who have volunteered their time, effort,
+and ideas to make this software available.
+
+	Nicolas Boullis <nicolas.boullis@ecp.fr>
+	Guido Guenther <agx@sigxcpu.org>
+
 -- 
 Luke Howard
 lukeh@padl.com

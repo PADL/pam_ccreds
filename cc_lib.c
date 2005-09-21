@@ -346,12 +346,12 @@ int pam_cc_delete_credentials(pam_cc_handle_t *pamcch,
 	rc = pam_cc_db_get(pamcch->db, key, keylength,
 			   data_stored, &datalength_stored);
 
-	if (rc != PAM_SUCCESS || datalength_stored != datalength) {
+	if (rc != PAM_SUCCESS || (datalength_stored != datalength && credentials)) {
 		rc = PAM_IGNORE;
 		goto out;
 	}
 
-	if (memcmp(data, data_stored, datalength) == 0) {
+	if (memcmp(data, data_stored, datalength) == 0 || !credentials) {
 		/* We need to delete them */
 		rc = pam_cc_db_delete(pamcch->db, key, keylength);
 		if (rc != PAM_SUCCESS && rc != PAM_AUTHINFO_UNAVAIL /* not found */) {
@@ -562,7 +562,7 @@ static int _pam_cc_print_entry(FILE *fp, const char *key, size_t keylength,
 	fprintf(fp, "%-16s %-16s %-8s", 
 		sz_key_type, user, service);
 
-	while (--length) {
+	while (length--) {
 		fprintf(fp, "%02x", *data++ & 0xFF);
 	}
 	fprintf(fp, "\n");

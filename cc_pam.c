@@ -139,17 +139,20 @@ static int _pam_sm_validate_cached_credentials(pam_handle_t *pamh,
 
 	authtok = NULL;
 
-	rc = pam_get_item(pamh, PAM_AUTHTOK, (const void **)&authtok);
-	if (rc == PAM_SUCCESS && (sm_flags & (SM_FLAGS_USE_FIRST_PASS |
-					      SM_FLAGS_TRY_FIRST_PASS))) {
-		if (authtok == NULL)
-			authtok = "";
+	switch (sm_flags & (SM_FLAGS_USE_FIRST_PASS | SM_FLAGS_TRY_FIRST_PASS)) {
+	case SM_FLAGS_USE_FIRST_PASS:
+	case SM_FLAGS_TRY_FIRST_PASS:
+		rc = pam_get_item(pamh, PAM_AUTHTOK, (const void **)&authtok);
+		if (rc == PAM_SUCCESS) {
+			if (authtok == NULL)
+				authtok = "";
 
-		rc = pam_cc_validate_credentials(pamcch, PAM_CC_TYPE_DEFAULT,
-						 authtok, strlen(authtok));
-	}
-
-	if (rc != PAM_SUCCESS && (sm_flags & SM_FLAGS_USE_FIRST_PASS) == 0) {
+			rc = pam_cc_validate_credentials(pamcch, PAM_CC_TYPE_DEFAULT,
+							 authtok, strlen(authtok));
+		}
+		if ((sm_flags & SM_FLAGS_USE_FIRST_PASS) || (rc == PAM_SUCCESS))
+			break;
+	case 0:
 		rc = _pam_sm_interact(pamh, flags, &authtok);
 		if (rc != PAM_SUCCESS) {
 			pam_cc_end(&pamcch);
@@ -161,6 +164,10 @@ static int _pam_sm_validate_cached_credentials(pam_handle_t *pamh,
 
 		rc = pam_cc_validate_credentials(pamcch, PAM_CC_TYPE_DEFAULT,
 						 authtok, strlen(authtok));
+		break;
+	default:
+		syslog(LOG_ERR, "pam_ccreds: internal error.");
+		rc = PAM_SERVICE_ERR;
 	}
 
 	if (rc == PAM_SUCCESS) {
@@ -277,6 +284,12 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh,
 			action = argv[i] + sizeof("action=") - 1;
 		else
 			syslog(LOG_ERR, "pam_ccreds: illegal option %s", argv[i]);
+	}
+
+	if ((sm_flags & (SM_FLAGS_USE_FIRST_PASS | SM_FLAGS_TRY_FIRST_PASS))
+	    == (SM_FLAGS_USE_FIRST_PASS | SM_FLAGS_TRY_FIRST_PASS)) {
+		syslog(LOG_ERR, "pam_ccreds: both use_first_pass and try_first_pass given");
+		return PAM_SERVICE_ERR;
 	}
 
 	if (action == NULL) {
