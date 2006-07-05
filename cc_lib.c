@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <limits.h>
+#include <syslog.h>
 
 #include <openssl/sha.h>
 

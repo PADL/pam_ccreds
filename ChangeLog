@@ -1,6 +1,10 @@
 $Id$
 ===============================================================
 
+4	Luke Howard <lukeh@padl.com>
+
+	* build fix (include syslog.h)
+
 2	Luke Howard <lukeh@padl.com>
 
 	* patch from Nicolas Boullis <nicolas.boullis@ecp.fr>:
