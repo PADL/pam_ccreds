@@ -1,6 +1,10 @@
 $Id$
 ===============================================================
 
+5	Luke Howard <lukeh@padl.com>
+
+	* fix an uninitialized variable
+
 4	Luke Howard <lukeh@padl.com>
 
 	* build fix (include syslog.h)
