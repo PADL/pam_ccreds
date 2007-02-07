@@ -266,7 +266,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh,
 {
 	int i;
 	int rc;
-	unsigned int sm_flags = 0, sm_action;
+	unsigned int sm_flags = 0, sm_action = 0;
 	const char *ccredsfile = NULL;
 	const char *action = NULL;
 	int (*selector)(pam_handle_t *, int, unsigned int, const char *);
