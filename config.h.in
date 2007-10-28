@@ -6,6 +6,9 @@
 #define CCREDS_FILE			"/var/cache/.security.db"
 
 
+/* Verify password with this program */
+#undef CCREDS_VALIDATE
+
 /* Define to 1 if you have the <db.h> header file. */
 #undef HAVE_DB_H
 

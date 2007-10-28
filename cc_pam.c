@@ -131,10 +131,12 @@ static int _pam_sm_validate_cached_credentials(pam_handle_t *pamh,
 	const char *authtok;
 	pam_cc_handle_t *pamcch;
 
-	rc = pam_cc_start_ex(pamh, ((sm_flags & SM_FLAGS_SERVICE_SPECIFIC) != 0),
+	if (! geteuid()) {
+		rc = pam_cc_start_ex(pamh, ((sm_flags & SM_FLAGS_SERVICE_SPECIFIC) != 0),
 			     ccredsfile, CC_FLAGS_READ_ONLY, &pamcch);
-	if (rc != PAM_SUCCESS) {
-		return rc;
+		if (rc != PAM_SUCCESS) {
+			return rc;
+		}
 	}
 
 	authtok = NULL;
@@ -146,28 +148,30 @@ static int _pam_sm_validate_cached_credentials(pam_handle_t *pamh,
 		if (rc == PAM_SUCCESS) {
 			if (authtok == NULL)
 				authtok = "";
-
-			rc = pam_cc_validate_credentials(pamcch, PAM_CC_TYPE_DEFAULT,
-							 authtok, strlen(authtok));
 		}
 		if ((sm_flags & SM_FLAGS_USE_FIRST_PASS) || (rc == PAM_SUCCESS))
 			break;
 	case 0:
 		rc = _pam_sm_interact(pamh, flags, &authtok);
 		if (rc != PAM_SUCCESS) {
-			pam_cc_end(&pamcch);
-			return rc;
+			break;
 		}
 
 		if (authtok == NULL)
 			authtok = "";
 
-		rc = pam_cc_validate_credentials(pamcch, PAM_CC_TYPE_DEFAULT,
-						 authtok, strlen(authtok));
 		break;
 	default:
 		syslog(LOG_ERR, "pam_ccreds: internal error.");
 		rc = PAM_SERVICE_ERR;
+	}
+
+	if (rc == PAM_SUCCESS) {
+		if (! geteuid())
+			rc = pam_cc_validate_credentials(pamcch, PAM_CC_TYPE_DEFAULT,
+						 authtok, strlen(authtok));
+		else
+			rc = pam_cc_run_helper_binary(pamh, CCREDS_VALIDATE, authtok, ((sm_flags & SM_FLAGS_SERVICE_SPECIFIC) != 0));
 	}
 
 	if (rc == PAM_SUCCESS) {
@@ -176,7 +180,8 @@ static int _pam_sm_validate_cached_credentials(pam_handle_t *pamh,
 					PAM_TEXT_INFO, flags);
 	}
 
-	pam_cc_end(&pamcch);
+	if (! geteuid())
+		pam_cc_end(&pamcch);
 
 	return rc;
 }
@@ -189,10 +194,12 @@ static int _pam_sm_store_cached_credentials(pam_handle_t *pamh,
 	const char *authtok;
 	pam_cc_handle_t *pamcch;
 
-	rc = pam_cc_start_ex(pamh, ((sm_flags & SM_FLAGS_SERVICE_SPECIFIC) != 0),
-			     ccredsfile, 0, &pamcch);
-	if (rc != PAM_SUCCESS) {
-		return rc;
+	if (! geteuid()) {
+		rc = pam_cc_start_ex(pamh, ((sm_flags & SM_FLAGS_SERVICE_SPECIFIC) != 0),
+				     ccredsfile, 0, &pamcch);
+		if (rc != PAM_SUCCESS) {
+			return rc;
+		}
 	}
 
 	authtok = NULL;
@@ -206,10 +213,15 @@ static int _pam_sm_store_cached_credentials(pam_handle_t *pamh,
 	if (authtok == NULL)
 		authtok = "";
 
-	rc = pam_cc_store_credentials(pamcch, PAM_CC_TYPE_DEFAULT,
-				      authtok, strlen(authtok));
+	if (! geteuid())
+		rc = pam_cc_store_credentials(pamcch, PAM_CC_TYPE_DEFAULT,
+					      authtok, strlen(authtok));
+	else
+		/* Unable to perform when not root; just return success. */
+		rc = PAM_SUCCESS;
 
-	pam_cc_end(&pamcch);
+	if (! geteuid())
+		pam_cc_end(&pamcch);
 
 	return rc;
 }
@@ -222,27 +234,36 @@ static int _pam_sm_update_cached_credentials(pam_handle_t *pamh,
 	const char *authtok;
 	pam_cc_handle_t *pamcch;
 
-	rc = pam_cc_start_ex(pamh, ((sm_flags & SM_FLAGS_SERVICE_SPECIFIC) != 0),
-			     ccredsfile, 0, &pamcch);
-	if (rc != PAM_SUCCESS) {
-		return rc;
-	}
-
 	authtok = NULL;
 
+	/* FIXME: the logic of this function is a little difficult.
+         * It may be wiser to provide an alternate implementation of the
+         * pam_cc_db_* interface.
+         */
+        if (! geteuid()) {
+            rc = pam_cc_start_ex(pamh, ((sm_flags & SM_FLAGS_SERVICE_SPECIFIC) != 0),
+                             ccredsfile, 0, &pamcch);
+            if (rc != PAM_SUCCESS) {
+                return rc;
+            }
+        }
+
 	rc = pam_get_item(pamh, PAM_AUTHTOK, (const void **)&authtok);
-	if (rc != PAM_SUCCESS) {
-		pam_cc_end(&pamcch);
-		return rc;
+	if (rc == PAM_SUCCESS) {
+
+		if (authtok == NULL)
+			authtok = "";
+
+		if (! geteuid())
+			rc = pam_cc_delete_credentials(pamcch, PAM_CC_TYPE_DEFAULT,
+						       authtok, strlen(authtok));
+		else
+			/* Unable to perform when not root; just return success. */
+			rc = PAM_SUCCESS;
 	}
 
-	if (authtok == NULL)
-		authtok = "";
-
-	rc = pam_cc_delete_credentials(pamcch, PAM_CC_TYPE_DEFAULT,
-				       authtok, strlen(authtok));
-
-	pam_cc_end(&pamcch);
+	if (! geteuid())
+		pam_cc_end(&pamcch);
 
 	return rc;
 }

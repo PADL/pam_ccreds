@@ -1,4 +1,5 @@
 noinst_PROGRAMS = pam_ccreds.so cc_test cc_dump
+sbin_PROGRAMS = ccreds_chkpwd
 EXTRA_DIST = COPYING.LIB CVSVersionInfo.txt ChangeLog README \
 	     ldap.conf pam.conf pam_ccreds.spec
 
@@ -12,6 +13,9 @@ cc_test_LDFLAGS = -Wl,-rpath -Wl,$(libdir)/security pam_ccreds.so -lpam -lpam_mi
 
 cc_dump_SOURCES = cc_dump.c
 cc_dump_LDFLAGS = -Wl,-rpath -Wl,$(libdir)/security pam_ccreds.so -lpam -lpam_misc
+
+ccreds_chkpwd_SOURCES = ccreds_chkpwd.c
+ccreds_chkpwd_LDFLAGS = -Wl,-rpath -Wl,$(libdir)/security pam_ccreds.so -lpam -lpam_misc
 
 DEFS = @DEFS@
 

@@ -16,6 +16,9 @@
 #include <errno.h>
 #include <limits.h>
 #include <syslog.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 #include <openssl/sha.h>
 
@@ -598,3 +601,80 @@ int pam_cc_dump(pam_cc_handle_t *pamcch, FILE *fp)
 	return rc;
 }
 
+int pam_cc_run_helper_binary(pam_handle_t *pamh, const char *helper,
+                             const char *passwd, int service_specific)
+{
+	int retval, child, fds[2], rc;
+	void (*sighandler)(int) = NULL;
+	const void *service, *user;
+
+	rc = pam_get_item(pamh, PAM_USER, &user);
+	if (rc != PAM_SUCCESS) {
+		syslog(LOG_WARNING, "pam_ccreds: failed to lookup user");
+		return PAM_AUTH_ERR;
+	}
+
+	if (service_specific) {
+		rc = pam_get_item(pamh, PAM_SERVICE, &service);
+		if (rc != PAM_SUCCESS) {
+			syslog(LOG_WARNING, "pam_ccreds: failed to lookup service");
+			return PAM_AUTH_ERR;
+		}
+	} else
+		service = NULL;
+
+	/* create a pipe for the password */
+	if (pipe(fds) != 0) {
+		syslog(LOG_WARNING, "pam_ccreds: failed to create pipe");
+		return PAM_AUTH_ERR;
+	}
+
+	sighandler = signal(SIGCHLD, SIG_DFL);
+
+	/* fork */
+	child = fork();
+	if (child == 0) {
+		static char *envp[] = { NULL };
+		char *args[] = { NULL, NULL, NULL, NULL };
+
+		/* XXX - should really tidy up PAM here too */
+
+		/* reopen stdin as pipe */
+		close(fds[1]);
+		dup2(fds[0], STDIN_FILENO);
+
+		/* exec binary helper */
+		args[0] = x_strdup(helper);
+		args[1] = x_strdup(user);
+		if (service != NULL)
+			args[2] = x_strdup(service);
+
+		syslog(LOG_WARNING, "pam_ccreds: launching helper binary");
+		execve(helper, args, envp);
+
+		/* should not get here: exit with error */
+		syslog(LOG_WARNING, "pam_ccreds: helper binary is not available");
+		exit(PAM_AUTHINFO_UNAVAIL);
+	} else if (child > 0) {
+		if (passwd != NULL) {		/* send the password to the child */
+			write(fds[1], passwd, strlen(passwd) + 1);
+			passwd = NULL;
+		} else {
+			write(fds[1], "", 1);	/* blank password */
+		}
+
+		close(fds[0]);			/* close here to avoid possible SIGPIPE above */
+		close(fds[1]);
+		(void) waitpid(child, &retval, 0); /* wait for helper to complete */
+		retval = (retval == 0) ? PAM_SUCCESS : PAM_AUTH_ERR;
+	} else {
+		syslog(LOG_WARNING, "pam_ccreds: fork failed");
+		retval = PAM_AUTH_ERR;
+	}
+
+	if (sighandler != NULL) {
+		(void) signal(SIGCHLD, sighandler); /* restore old signal handler */
+	}
+
+	return retval;
+}

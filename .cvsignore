@@ -8,3 +8,7 @@ autom4te.cache
 Makefile
 .deps
 pam_ccreds.so
+ccreds_chkpwd
+config.cache
+stamp-h
+stamp-h.in

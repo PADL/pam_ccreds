@@ -6,6 +6,8 @@ $Id$
 	* fix an uninitialized variable
 	* fix dbopen() usage for Berkeley DB 3
 	* add usage option to cc_dump
+	* BUG#227: verify password via ccreds_chkpwd for
+	  non-root users
 
 4	Luke Howard <lukeh@padl.com>
 

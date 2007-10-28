@@ -3265,6 +3265,12 @@ _ACEOF
 
 fi;
 
+
+cat >>confdefs.h <<_ACEOF
+#define CCREDS_VALIDATE "/sbin/ccreds_chkpwd"
+_ACEOF
+
+
 if test "$ac_cv_c_compiler_gnu" = "yes"; then CFLAGS="$CFLAGS -Wall -fPIC"; fi
 
 case "$target_os" in

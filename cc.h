@@ -89,5 +89,9 @@ int pam_cc_unassociate(pam_cc_handle_t *pamcch, pam_handle_t *pamh);
 /* Dump contents - for debugging only */
 int pam_cc_dump(pam_cc_handle_t *pamcch, FILE *fp);
 
+/* Execute ccreds_* */
+int pam_cc_run_helper_binary(pam_handle_t *pamh, const char *helper,
+                             const char *passwd, int service_specific);
+
 #endif /* _PAM_CC_H_ */
 

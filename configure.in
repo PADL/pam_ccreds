@@ -12,6 +12,8 @@ AC_PROG_INSTALL
 AC_ARG_WITH(openssl-dir, [  --with-openssl-dir=DIR  base directory of OpenSSL library])
 AC_ARG_WITH(ccreds-file, [  --with-ccreds-file      path to cached credentials file], [AC_DEFINE_UNQUOTED(CCREDS_FILE, "$with_ccreds_file")])
 
+AC_DEFINE_UNQUOTED(CCREDS_VALIDATE, "/sbin/ccreds_chkpwd", [Verify password with this program])
+
 if test "$ac_cv_prog_gcc" = "yes"; then CFLAGS="$CFLAGS -Wall -fPIC"; fi
 
 case "$target_os" in
