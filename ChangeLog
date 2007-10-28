@@ -4,6 +4,7 @@ $Id$
 5	Luke Howard <lukeh@padl.com>
 
 	* fix an uninitialized variable
+	* fix dbopen() usage for Berkeley DB 3
 
 4	Luke Howard <lukeh@padl.com>
 

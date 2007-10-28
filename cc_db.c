@@ -70,7 +70,7 @@ int pam_cc_db_open(const char *filename, unsigned int flags,
 	rc = db->open(db, NULL, filename, NULL,
 		      DB_BTREE, db_flags, mode);
 #else
-	rc = db->open(db, NULL, filename,
+	rc = db->open(db, filename, NULL,
 		      DB_BTREE, db_flags, mode);
 #endif
 
