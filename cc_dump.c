@@ -22,10 +22,14 @@ int main(int argc, char *argv[])
 {
 	pam_cc_handle_t *pamcch;
 	char *ccredsfile;
-	int rc;
+	int rc = 0;
 
 	if (argc > 1)
-		ccredsfile = argv[1];
+		if (strcmp(argv[1], "-h") == 0) {
+			fprintf(stderr, "Usage: cc_dump [ccredsfile]\n");
+			exit(rc);
+		} else
+			ccredsfile = argv[1];
 	else
 		ccredsfile = NULL;
 

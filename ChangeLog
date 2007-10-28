@@ -5,6 +5,7 @@ $Id$
 
 	* fix an uninitialized variable
 	* fix dbopen() usage for Berkeley DB 3
+	* add usage option to cc_dump
 
 4	Luke Howard <lukeh@padl.com>
 
