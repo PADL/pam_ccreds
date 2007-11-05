@@ -52,9 +52,9 @@ static int _pam_cc_derive_key_ssha1(pam_cc_handle_t *pamcch,
 	*derived_key_length_p = SHA_DIGEST_LENGTH;
 	*derived_key_p = malloc(SHA_DIGEST_LENGTH);
 #else
-	gcry_md_open (&handle, GCRY_MD_SHA1, 0);
-	*derived_key_length_p = gcry_md_get_algo_dlen (GCRY_MD_SHA1);
-	*derived_key_p = malloc(*derived_key_length_p);
+	gcry_md_open(&handle, GCRY_MD_SHA1, 0);
+	*derived_key_length_p = gcry_md_get_algo_dlen(GCRY_MD_SHA1);
+	*derived_key_p = (char *)malloc(*derived_key_length_p);
 #endif
 	if (*derived_key_p == NULL) {
 		return PAM_BUF_ERR;
@@ -66,14 +66,14 @@ static int _pam_cc_derive_key_ssha1(pam_cc_handle_t *pamcch,
 #ifdef HAVE_OPENSSL_OPENSSLCONF_H
 	SHA1_Update(&sha_ctx, T, sizeof(T));
 #else
-	gcry_md_write (handle, T, sizeof(T));
+	gcry_md_write(handle, T, sizeof(T));
 #endif
 
 	if (pamcch->service != NULL) {
 #ifdef HAVE_OPENSSL_OPENSSLCONF_H
 		SHA1_Update(&sha_ctx, pamcch->service, strlen(pamcch->service));
 #else
-		gcry_md_write (handle, pamcch->service, strlen(pamcch->service));
+		gcry_md_write(handle, pamcch->service, strlen(pamcch->service));
 #endif
 	}
 
@@ -82,8 +82,8 @@ static int _pam_cc_derive_key_ssha1(pam_cc_handle_t *pamcch,
 	SHA1_Update(&sha_ctx, credentials, length);
 	SHA1_Final(*derived_key_p, &sha_ctx);
 #else
-	gcry_md_write (handle, pamcch->user, strlen(pamcch->user));
-	gcry_md_write (handle, credentials, length);
+	gcry_md_write(handle, pamcch->user, strlen(pamcch->user));
+	gcry_md_write(handle, credentials, length);
 	memcpy(*derived_key_p, gcry_md_read(handle, 0), *derived_key_length_p);
 #endif
 	return PAM_SUCCESS;
@@ -204,11 +204,11 @@ int pam_cc_start(const char *service,
 }
 
 /* Initializes a cached credentials handle from PAM handle */
-int pam_cc_start_ex(pam_handle_t *pamh,
-		    int service_specific,
-		    const char *ccredsfile,
-		    unsigned int cc_flags,
-		    pam_cc_handle_t **pamcch_p)
+int pam_cc_start_ext(pam_handle_t *pamh,
+		     int service_specific,
+		     const char *ccredsfile,
+		     unsigned int cc_flags,
+		     pam_cc_handle_t **pamcch_p)
 {
 	int rc;
 	const void *service;

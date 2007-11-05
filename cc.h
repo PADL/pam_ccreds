@@ -53,7 +53,7 @@ int pam_cc_start(const char *service,
 		 pam_cc_handle_t **pamcch);
 
 /* Initializes a cached credentials handle from PAM handle */
-int pam_cc_start_ex(pam_handle_t *pamh,
+int pam_cc_start_ext(pam_handle_t *pamh,
 		    int unique_service,
 		    const char *ccredsfile,
 		    unsigned int cc_flags,
