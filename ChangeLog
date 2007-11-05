@@ -1,6 +1,10 @@
 $Id$
 ===============================================================
 
+7	Luke Howard <lukeh@padl.com>
+
+	* Coding style cleanups
+
 6	Guido Guenther <agx@sigxcpu.org>
 
 	* uses AC_DEFINE_UNQUOTED for CCREDS_FILE so acconfig.h
