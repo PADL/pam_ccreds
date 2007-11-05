@@ -80,7 +80,7 @@ static int _pam_cc_derive_key_ssha1(pam_cc_handle_t *pamcch,
 #ifdef HAVE_OPENSSL_OPENSSLCONF_H
 	SHA1_Update(&sha_ctx, pamcch->user, strlen(pamcch->user));
 	SHA1_Update(&sha_ctx, credentials, length);
-	SHA1_Final(*derived_key_p, &sha_ctx);
+	SHA1_Final((unsigned char *)*derived_key_p, &sha_ctx);
 #else
 	gcry_md_write(handle, pamcch->user, strlen(pamcch->user));
 	gcry_md_write(handle, credentials, length);
