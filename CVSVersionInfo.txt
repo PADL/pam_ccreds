@@ -2,5 +2,5 @@
 # $Id$
 # $Name$
 ProjectName: pam_ccreds
-ProjectVersion: 6
+ProjectVersion: 7
 ProjectMaintainer: lukeh
