@@ -2,17 +2,20 @@ AC_INIT(cc_lib.c)
 AC_CANONICAL_SYSTEM
 AC_PREFIX_DEFAULT()
 
-AM_INIT_AUTOMAKE(pam_ccreds, 5)
+AM_INIT_AUTOMAKE(pam_ccreds, 6)
 AM_CONFIG_HEADER(config.h)
+AM_MAINTAINER_MODE
 
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_INSTALL
 
-AC_ARG_WITH(openssl-dir, [  --with-openssl-dir=DIR  base directory of OpenSSL library])
-AC_ARG_WITH(ccreds-file, [  --with-ccreds-file      path to cached credentials file], [AC_DEFINE_UNQUOTED(CCREDS_FILE, "$with_ccreds_file")])
-
+AC_DEFINE_UNQUOTED(CCREDS_FILE, "/var/cache/.security.db", [Credentials cache file])
 AC_DEFINE_UNQUOTED(CCREDS_VALIDATE, "/sbin/ccreds_chkpwd", [Verify password with this program])
+
+AC_ARG_WITH(openssl-dir, [  --with-openssl-dir=DIR  base directory of OpenSSL library])
+AC_ARG_WITH(ccreds-file, [  --with-ccreds-file=PATH path to cached credentials file], [AC_DEFINE_UNQUOTED(CCREDS_FILE, "$with_ccreds_file")])
+AC_ARG_ENABLE(gcrypt, [  --enable-gcrypt build with gnuTLS (gcrypt) instead of OpenSSL], [use_gcrypt=yes])
 
 if test "$ac_cv_prog_gcc" = "yes"; then CFLAGS="$CFLAGS -Wall -fPIC"; fi
 
@@ -43,35 +46,36 @@ AM_CONDITIONAL(USE_NATIVE_LINKER, test -n "$pam_ccreds_so_LD")
 AM_CONDITIONAL(EXTENSION_SO, test "$target_os" = "linux" -o "$target_os" = "linux-gnu")
 AM_CONDITIONAL(EXTENSION_1, test "$TARGET_OS" = "HPUX")
 
-if test -n "$with_openssl_dir"; then
-  CPPFLAGS="$CPPFLAGS -I$with_openssl_dir/include"
-  LDFLAGS="$LDFLAGS -L$with_openssl_dir/lib"
-  case "$target_os" in  
-  aix*) LDFLAGS="$LDFLAGS -Wl,-brtl -Wl,-blibpath:$with_openssl_dir/lib"
-    pam_ccreds_so_LDFLAGS="$pam_ccreds_so_LDFLAGS -L$with_openssl_dir/lib -brtl -blibpath:$with_openssl_dir/lib" ;;
-  hpux*) LDFLAGS="$LDFLAGS -Wl,+b$with_openssl_dir/lib"
-    pam_ccreds_so_LDFLAGS="$pam_ccreds_so_LDFLAGS -L$with_openssl_dir/lib +b$with_openssl_dir/lib" ;;
-  solaris*) LDFLAGS="$LDFLAGS -R$with_openssl_dir/lib" 
-    pam_ccreds_so_LDFLAGS="$pam_ccreds_so_LDFLAGS -L$with_openssl_dir/lib -R$with_openssl_dir/lib" ;;
-  *) LDFLAGS="$LDFLAGS -Wl,-rpath,$with_openssl_dir/lib" ;;
-  esac  
+if test -z "$use_gcrypt"; then
+  if test -n "$with_openssl_dir"; then
+    CPPFLAGS="$CPPFLAGS -I$with_openssl_dir/include"
+    LDFLAGS="$LDFLAGS -L$with_openssl_dir/lib"
+    case "$target_os" in  
+    aix*) LDFLAGS="$LDFLAGS -Wl,-brtl -Wl,-blibpath:$with_openssl_dir/lib"
+      pam_ccreds_so_LDFLAGS="$pam_ccreds_so_LDFLAGS -L$with_openssl_dir/lib -brtl -blibpath:$with_openssl_dir/lib" ;;
+    hpux*) LDFLAGS="$LDFLAGS -Wl,+b$with_openssl_dir/lib"
+      pam_ccreds_so_LDFLAGS="$pam_ccreds_so_LDFLAGS -L$with_openssl_dir/lib +b$with_openssl_dir/lib" ;;
+    solaris*) LDFLAGS="$LDFLAGS -R$with_openssl_dir/lib" 
+      pam_ccreds_so_LDFLAGS="$pam_ccreds_so_LDFLAGS -L$with_openssl_dir/lib -R$with_openssl_dir/lib" ;;
+    *) LDFLAGS="$LDFLAGS -Wl,-rpath,$with_openssl_dir/lib" ;;
+    esac  
+  fi
+  AC_CHECK_HEADERS(openssl/opensslconf.h, , AC_MSG_ERROR(could not locate <openssl/opensslconf.h>))
+  AC_CHECK_LIB(crypto, SHA1_Init,[LIBS="-lcrypto $LIBS"],,$LIBS)
+else
+  AM_PATH_LIBGCRYPT(1.2.0,:, AC_MSG_ERROR(could not locate gcrypt library))
 fi
 
 AC_CHECK_HEADERS(security/pam_appl.h security/pam_misc.h security/pam_modules.h)
 AC_CHECK_HEADERS(pam/pam_appl.h pam/pam_misc.h pam/pam_modules.h)
-AC_CHECK_HEADERS(openssl/opensslconf.h, , AC_MSG_ERROR(could not locate <openssl/opensslconf.h>))
 
 AC_CHECK_HEADERS(db.h)
-dnl AC_CHECK_HEADERS(db1/db.h)
-dnl AC_CHECK_HEADERS(db_185.h)
-dnl AC_CHECK_HEADERS(db3/db_185.h)
 
 AC_CHECK_LIB(db, main,[LIBS="-ldb $LIBS" found_db_lib=yes],,$LIBS)
 if test -z "$found_db_lib"; then
 	AC_CHECK_LIB(db1, main,[LIBS="-ldb1 $LIBS" found_db_lib=yes],,$LIBS)
 fi
 
-AC_CHECK_LIB(crypto, SHA1_Init,[LIBS="-lcrypto $LIBS"],,$LIBS)
 AC_CHECK_LIB(pam, pam_start)
 AC_CHECK_LIB(pam_misc, misc_conv)
 

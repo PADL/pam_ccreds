@@ -3,7 +3,9 @@ sbin_PROGRAMS = ccreds_chkpwd
 EXTRA_DIST = COPYING.LIB CVSVersionInfo.txt ChangeLog README \
 	     ldap.conf pam.conf pam_ccreds.spec
 
+AM_CPPFLAGS = $(LIBGCRYPT_CFLAGS)
 AM_CFLAGS = -fno-strict-aliasing
+LDADD = $(LIBGCRYPT_LIBS)
 
 pam_ccreds_so_SOURCES = cc_db.c cc_lib.c cc_pam.c cc.h
 pam_ccreds_so_LDFLAGS = @pam_ccreds_so_LDFLAGS@

@@ -20,7 +20,11 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#ifdef HAVE_OPENSSL_OPENSSLCONF_H
 #include <openssl/sha.h>
+#else
+#include <gcrypt.h>
+#endif
 
 #include "cc_private.h"
 
@@ -31,7 +35,11 @@ static int _pam_cc_derive_key_ssha1(pam_cc_handle_t *pamcch,
 				    char **derived_key_p,
 				    size_t *derived_key_length_p)
 {
+#ifdef HAVE_OPENSSL_OPENSSLCONF_H
 	SHA_CTX sha_ctx;
+#else
+	gcry_md_hd_t handle;
+#endif
 	unsigned char T[4];
 
 	T[0] = (type >> 24) & 0xFF;
@@ -39,26 +47,45 @@ static int _pam_cc_derive_key_ssha1(pam_cc_handle_t *pamcch,
 	T[2] = (type >> 8)  & 0xFF;
 	T[3] = (type >> 0)  & 0xFF;
 
+#ifdef HAVE_OPENSSL_OPENSSLCONF_H
 	SHA1_Init(&sha_ctx);
-
+	*derived_key_length_p = SHA_DIGEST_LENGTH;
 	*derived_key_p = malloc(SHA_DIGEST_LENGTH);
+#else
+	gcry_md_open (&handle, GCRY_MD_SHA1, 0);
+	*derived_key_length_p = gcry_md_get_algo_dlen (GCRY_MD_SHA1);
+	*derived_key_p = malloc(*derived_key_length_p);
+#endif
 	if (*derived_key_p == NULL) {
 		return PAM_BUF_ERR;
 	}
 
-	*derived_key_length_p = SHA_DIGEST_LENGTH;
-
 	/*
 	 * Salt with key type, service and user names
 	 */
+#ifdef HAVE_OPENSSL_OPENSSLCONF_H
 	SHA1_Update(&sha_ctx, T, sizeof(T));
+#else
+	gcry_md_write (handle, T, sizeof(T));
+#endif
+
 	if (pamcch->service != NULL) {
+#ifdef HAVE_OPENSSL_OPENSSLCONF_H
 		SHA1_Update(&sha_ctx, pamcch->service, strlen(pamcch->service));
+#else
+		gcry_md_write (handle, pamcch->service, strlen(pamcch->service));
+#endif
 	}
+
+#ifdef HAVE_OPENSSL_OPENSSLCONF_H
 	SHA1_Update(&sha_ctx, pamcch->user, strlen(pamcch->user));
 	SHA1_Update(&sha_ctx, credentials, length);
 	SHA1_Final(*derived_key_p, &sha_ctx);
-
+#else
+	gcry_md_write (handle, pamcch->user, strlen(pamcch->user));
+	gcry_md_write (handle, credentials, length);
+	memcpy(*derived_key_p, gcry_md_read(handle, 0), *derived_key_length_p);
+#endif
 	return PAM_SUCCESS;
 }
 

@@ -6,6 +6,9 @@
 #define CCREDS_FILE			"/var/cache/.security.db"
 
 
+/* Credentials cache file */
+#undef CCREDS_FILE
+
 /* Verify password with this program */
 #undef CCREDS_VALIDATE
 

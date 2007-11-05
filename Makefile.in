@@ -47,7 +47,8 @@ DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	mkinstalldirs
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.in
+am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
+	$(top_srcdir)/configure.in
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
@@ -61,16 +62,21 @@ PROGRAMS = $(noinst_PROGRAMS) $(sbin_PROGRAMS)
 am_cc_dump_OBJECTS = cc_dump.$(OBJEXT)
 cc_dump_OBJECTS = $(am_cc_dump_OBJECTS)
 cc_dump_LDADD = $(LDADD)
+am__DEPENDENCIES_1 =
+cc_dump_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am_cc_test_OBJECTS = cc_test.$(OBJEXT)
 cc_test_OBJECTS = $(am_cc_test_OBJECTS)
 cc_test_LDADD = $(LDADD)
+cc_test_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am_ccreds_chkpwd_OBJECTS = ccreds_chkpwd.$(OBJEXT)
 ccreds_chkpwd_OBJECTS = $(am_ccreds_chkpwd_OBJECTS)
 ccreds_chkpwd_LDADD = $(LDADD)
+ccreds_chkpwd_DEPENDENCIES = $(am__DEPENDENCIES_1)
 am_pam_ccreds_so_OBJECTS = cc_db.$(OBJEXT) cc_lib.$(OBJEXT) \
 	cc_pam.$(OBJEXT)
 pam_ccreds_so_OBJECTS = $(am_pam_ccreds_so_OBJECTS)
 pam_ccreds_so_LDADD = $(LDADD)
+pam_ccreds_so_DEPENDENCIES = $(am__DEPENDENCIES_1)
 DEFAULT_INCLUDES = -I. -I$(srcdir) -I.
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -124,9 +130,15 @@ INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
 LDFLAGS = @LDFLAGS@
+LIBGCRYPT_CFLAGS = @LIBGCRYPT_CFLAGS@
+LIBGCRYPT_CONFIG = @LIBGCRYPT_CONFIG@
+LIBGCRYPT_LIBS = @LIBGCRYPT_LIBS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LTLIBOBJS = @LTLIBOBJS@
+MAINT = @MAINT@
+MAINTAINER_MODE_FALSE = @MAINTAINER_MODE_FALSE@
+MAINTAINER_MODE_TRUE = @MAINTAINER_MODE_TRUE@
 MAKEINFO = @MAKEINFO@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
@@ -188,7 +200,9 @@ target_vendor = @target_vendor@
 EXTRA_DIST = COPYING.LIB CVSVersionInfo.txt ChangeLog README \
 	     ldap.conf pam.conf pam_ccreds.spec
 
+AM_CPPFLAGS = $(LIBGCRYPT_CFLAGS)
 AM_CFLAGS = -fno-strict-aliasing
+LDADD = $(LIBGCRYPT_LIBS)
 pam_ccreds_so_SOURCES = cc_db.c cc_lib.c cc_pam.c cc.h
 cc_test_SOURCES = cc_test.c
 cc_test_LDFLAGS = -Wl,-rpath -Wl,$(libdir)/security pam_ccreds.so -lpam -lpam_misc
@@ -209,7 +223,7 @@ all: config.h
 .SUFFIXES: .c .o .obj
 am--refresh:
 	@:
-$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
+$(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -236,9 +250,9 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 $(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 	$(SHELL) ./config.status --recheck
 
-$(top_srcdir)/configure:  $(am__configure_deps)
+$(top_srcdir)/configure: @MAINTAINER_MODE_TRUE@ $(am__configure_deps)
 	cd $(srcdir) && $(AUTOCONF)
-$(ACLOCAL_M4):  $(am__aclocal_m4_deps)
+$(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
 
 config.h: stamp-h1
@@ -250,7 +264,7 @@ config.h: stamp-h1
 stamp-h1: $(srcdir)/config.h.in $(top_builddir)/config.status
 	@rm -f stamp-h1
 	cd $(top_builddir) && $(SHELL) ./config.status config.h
-$(srcdir)/config.h.in:  $(am__configure_deps) $(top_srcdir)/acconfig.h
+$(srcdir)/config.h.in: @MAINTAINER_MODE_TRUE@ $(am__configure_deps) $(top_srcdir)/acconfig.h
 	cd $(top_srcdir) && $(AUTOHEADER)
 	rm -f stamp-h1
 	touch $@

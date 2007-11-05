@@ -1,7 +1,16 @@
 $Id$
 ===============================================================
 
-5	Luke Howard <lukeh@padl.com>
+6	Guido Guenther <agx@sigxcpu.org>
+
+	* uses AC_DEFINE_UNQUOTED for CCREDS_FILE so acconfig.h
+	  can go
+	* adds AM_MAINTAINER_MODE to configure.in so we don't run
+	  autoreconf too often
+	* makes it possible to select gnuTLS (gcrypt) instead of
+	  OpenSSL during compile time (--enable-gcrypt)
+
+5	Guido Guenther <agx@sigxcpu.org>
 
 	* fix an uninitialized variable
 	* fix dbopen() usage for Berkeley DB 3
