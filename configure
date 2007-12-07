@@ -1703,7 +1703,7 @@ fi
 
 # Define the identity of the package.
  PACKAGE=pam_ccreds
- VERSION=7
+ VERSION=8
 
 
 cat >>confdefs.h <<_ACEOF

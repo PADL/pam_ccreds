@@ -1,6 +1,10 @@
 $Id$
 ===============================================================
 
+8	Guido Guenther <agx@sigxcpu.org>
+
+	* remove ccreds_file parameter
+
 7	Luke Howard <lukeh@padl.com>
 
 	* Coding style cleanups

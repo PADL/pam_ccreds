@@ -134,7 +134,6 @@ int main(int argc, char *argv[])
 	char *user;
 	char *user_arg;
 	char *service;
-	char *ccredsfile;
 
 	/*
 	 * Catch or ignore as many signal as possible.
@@ -167,7 +166,7 @@ int main(int argc, char *argv[])
 	 */
 	user = getuidname(getuid());
 
-	if (argc < 2 || argc > 4) {
+	if (argc < 2 || argc > 3) {
 		_log_err(LOG_NOTICE
 		      ,"inappropriate use of ccreds helper binary [UID=%d,bad argv]"
 			 ,getuid());
@@ -180,7 +179,6 @@ int main(int argc, char *argv[])
 
 	user_arg = argv[1];
 	service = (argc > 2) ? argv[2] : NULL;
-	ccredsfile = (argc > 3) ? argv[3] : NULL;
 
 	/* Verify that user matches */
         if (strcmp(user, user_arg)) {
@@ -197,11 +195,11 @@ int main(int argc, char *argv[])
 	} else {
 		if (npass == 0) {
 			/* the password is blank */
-			retval = _ccreds_verify_password(service, user, ccredsfile, "");
+			retval = _ccreds_verify_password(service, user, NULL, "");
 		} else {
 			/* does pass agree with the official one? */
 			pass[npass] = '\0';	/* NUL terminate */
-			retval = _ccreds_verify_password(service, user, ccredsfile, pass);
+			retval = _ccreds_verify_password(service, user, NULL, pass);
 		}
 	}
 	memset(pass, '\0', MAXPASS);	/* clear memory of the password */
