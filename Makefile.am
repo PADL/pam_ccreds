@@ -11,13 +11,16 @@ pam_ccreds_so_SOURCES = cc_db.c cc_lib.c cc_pam.c cc.h
 pam_ccreds_so_LDFLAGS = @pam_ccreds_so_LDFLAGS@
 
 cc_test_SOURCES = cc_test.c
-cc_test_LDFLAGS = -Wl,-rpath -Wl,$(libdir)/security pam_ccreds.so -lpam -lpam_misc
+cc_test_LDFLAGS = -Wl,-rpath -Wl,$(libdir)/security
+cc_test_LDADD = pam_ccreds.so -lpam -lpam_misc
 
 cc_dump_SOURCES = cc_dump.c
-cc_dump_LDFLAGS = -Wl,-rpath -Wl,$(libdir)/security pam_ccreds.so -lpam -lpam_misc
+cc_dump_LDFLAGS = -Wl,-rpath -Wl,$(libdir)/security
+cc_dump_LDADD = pam_ccreds.so -lpam -lpam_misc
 
 ccreds_chkpwd_SOURCES = ccreds_chkpwd.c
-ccreds_chkpwd_LDFLAGS = -Wl,-rpath -Wl,$(libdir)/security pam_ccreds.so -lpam -lpam_misc
+ccreds_chkpwd_LDFLAGS = -Wl,-rpath -Wl,$(libdir)/security
+ccreds_chkpwd_LDADD = pam_ccreds.so -lpam -lpam_misc
 
 DEFS = @DEFS@
 

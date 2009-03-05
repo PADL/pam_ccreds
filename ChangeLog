@@ -1,6 +1,10 @@
 $Id$
 ===============================================================
 
+9	Luke Howard <lukeh@padl.com>
+
+	* patch from Steven Brudenell to fix dependencies
+
 8	Guido Guenther <agx@sigxcpu.org>
 
 	* remove ccreds_file parameter
