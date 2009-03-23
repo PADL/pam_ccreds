@@ -199,7 +199,7 @@ int pam_cc_db_get(void *_db, const char *keyname, size_t keylength,
 		return (rc == DB_NOTFOUND) ? PAM_AUTHINFO_UNAVAIL : PAM_SERVICE_ERR;
 	}
 
-	if (val.size < *size) {
+	if (val.size > *size) {
 		return PAM_BUF_ERR;
 	}
 
