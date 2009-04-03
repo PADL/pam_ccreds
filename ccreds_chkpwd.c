@@ -119,7 +119,7 @@ static char *getuidname(uid_t uid)
 	if (pw == NULL)
 		return NULL;
 
-	strncpy(username, pw->pw_name, sizeof(username));
+	strncpy(username, pw->pw_name, sizeof(username) - 1);
 	username[sizeof(username) - 1] = '\0';
 
 	return username;
