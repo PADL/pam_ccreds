@@ -1,6 +1,10 @@
 $Id$
 ===============================================================
 
+10	Guido Guenther <agx@sigxcpu.org>
+
+	* don't try to store/validate empty passwords in cc_test
+
 9	Luke Howard <lukeh@padl.com>
 
 	* patch from Steven Brudenell to fix dependencies

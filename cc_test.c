@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 	char *password;
 	char *ccredsfile;
 	char *action;
-	const char *function;
+	const char *function = NULL;
 	unsigned int cc_flags;
 
 	if (argc < 5 || argc > 6) {
@@ -60,11 +60,11 @@ int main(int argc, char *argv[])
 		exit(rc);
 	}
 
-	if (strcmp(action, "-validate") == 0) {
+	if (strcmp(action, "-validate") == 0 && password) {
 		rc = pam_cc_validate_credentials(pamcch, PAM_CC_TYPE_DEFAULT,
 						 password, strlen(password));
 		function = "pam_cc_validate_credentials";
-	} else if (strcmp(action, "-store") == 0) {
+	} else if (strcmp(action, "-store") == 0 && password) {
 		rc = pam_cc_store_credentials(pamcch, PAM_CC_TYPE_DEFAULT,
 					      password, strlen(password));
 		function = "pam_cc_store_credentials";
@@ -75,7 +75,6 @@ int main(int argc, char *argv[])
 		function = "pam_cc_delete_credentials";
 	} else {
 		rc = usage();
-		function = NULL;
 	}
 
 	if (function != NULL) {
