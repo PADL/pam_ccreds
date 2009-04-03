@@ -1,6 +1,6 @@
 Summary: PAM cached credentials module
 Name: pam_ccreds
-Version: 8
+Version: 10
 Release: 1
 Source0: ftp://ftp.padl.com/pub/%{name}-%{version}.tar.gz
 URL: http://www.padl.com/
