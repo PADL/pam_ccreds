@@ -38,6 +38,17 @@ static int _pam_cc_derive_key_ssha1(pam_cc_handle_t *pamcch,
 #ifdef HAVE_OPENSSL_OPENSSLCONF_H
 	SHA_CTX sha_ctx;
 #else
+	if (!gcry_control (GCRYCTL_ANY_INITIALIZATION_P)) {
+		if (!gcry_check_version (NULL)) {
+			syslog (LOG_ERR,
+				"pam_ccreds: failed to initialize libgcrypt");
+			return PAM_SERVICE_ERR;
+		}
+
+		gcry_control (GCRYCTL_DISABLE_SECMEM, 0);
+		gcry_control (GCRYCTL_INITIALIZATION_FINISHED, 0);
+	}
+
 	gcry_md_hd_t handle;
 #endif
 	unsigned char T[4];
