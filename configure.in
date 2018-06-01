@@ -35,7 +35,8 @@ hpux*) pam_ccreds_so_LD="/bin/ld"
   TARGET_OS="HPUX" ;;
 solaris*) pam_ccreds_so_LD="/usr/ccs/bin/ld"
   pam_ccreds_so_LDFLAGS="-B dynamic -M \$(srcdir)/exports.solaris -G -B group -lc" ;;
-linux*) pam_ccreds_so_LDFLAGS="-shared -Wl,-Bdynamic -Wl,--version-script,\$(srcdir)/exports.linux" ;;
+linux*) pam_ccreds_so_LDFLAGS="-shared -Wl,-Bdynamic -Wl,--version-script,\$(srcdir)/exports.linux"
+  TARGET_OS="LINUX" ;;
 *) pam_ccreds_so_LDFLAGS="-shared" ;;
 esac
 
@@ -43,7 +44,7 @@ AC_SUBST(pam_ccreds_so_LD)
 AC_SUBST(pam_ccreds_so_LDFLAGS)
 
 AM_CONDITIONAL(USE_NATIVE_LINKER, test -n "$pam_ccreds_so_LD")
-AM_CONDITIONAL(EXTENSION_SO, test "$target_os" = "linux" -o "$target_os" = "linux-gnu")
+AM_CONDITIONAL(EXTENSION_SO, test "$TARGET_OS" = "LINUX")
 AM_CONDITIONAL(EXTENSION_1, test "$TARGET_OS" = "HPUX")
 
 if test -z "$use_gcrypt"; then
