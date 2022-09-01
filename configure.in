@@ -72,9 +72,9 @@ AC_CHECK_HEADERS(pam/pam_appl.h pam/pam_misc.h pam/pam_modules.h)
 
 AC_CHECK_HEADERS(db.h)
 
-AC_CHECK_LIB(db, main,[LIBS="-ldb $LIBS" found_db_lib=yes],,$LIBS)
+AC_CHECK_LIB(db, db_create,[LIBS="-ldb $LIBS" found_db_lib=yes],,$LIBS)
 if test -z "$found_db_lib"; then
-	AC_CHECK_LIB(db1, main,[LIBS="-ldb1 $LIBS" found_db_lib=yes],,$LIBS)
+	AC_CHECK_LIB(db1, db_create,[LIBS="-ldb1 $LIBS" found_db_lib=yes],,$LIBS)
 fi
 
 AC_CHECK_LIB(pam, pam_start)
